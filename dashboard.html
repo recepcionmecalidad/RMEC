@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Principal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f5;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            float: right;
+            margin-top: -40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="welcome-msg">Bienvenido</h1>
+        <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+    </div>
+
+    <!-- Aquí agregaremos la interfaz de inspección después -->
+
+    <script>
+        const name = sessionStorage.getItem('name');
+        if (!name) {
+            window.location.href = 'index.html'; // Redirige si no hay sesión activa
+        } else {
+            document.getElementById('welcome-msg').textContent = 'Bienvenido, ' + name;
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
+
