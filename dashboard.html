@@ -29,15 +29,16 @@
 
         .menu-container {
             display: flex;
-            justify-content: center;
-            gap: 40px;
+            flex-direction: column; /* Uno debajo del otro */
+            align-items: center;
+            gap: 30px;
         }
 
         .menu-option {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 180px;
+            padding: 30px;
+            border-radius: 12px;
+            width: 220px;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
@@ -49,13 +50,18 @@
         }
 
         .menu-option img {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 10px;
+            width: 72px;
+            height: 72px;
+            margin-bottom: 12px;
+        }
+
+        /* Ajuste de 2px a la derecha para el primer icono */
+        .menu-option:first-child img {
+            margin-left: 2px;
         }
 
         .menu-option p {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             color: #333;
         }
@@ -81,7 +87,7 @@
     <script>
         const name = sessionStorage.getItem('name');
         if (!name) {
-            window.location.href = 'index.html'; // Redirige si no hay sesión activa
+            window.location.href = 'index.html';
         } else {
             document.getElementById('welcome-msg').textContent = 'Bienvenido, ' + name;
         }
