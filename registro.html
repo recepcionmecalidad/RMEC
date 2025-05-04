@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Inspección</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .field-group {
+            margin-bottom: 15px;
+        }
+        .inline {
+            display: inline-block;
+            width: 48%;
+        }
+        .inline + .inline {
+            margin-left: 4%;
+        }
+        .hidden {
+            display: none;
+        }
+        #preview-container {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Registro de Inspección</h1>
+<form id="inspection-form">
+    <div class="field-group">
+        <label for="fecha-inspeccion">Fecha de inspección</label>
+        <input type="date" id="fecha-inspeccion" disabled>
+    </div>
+
+    <div class="field-group">
+        <label for="fecha-ingreso">Fecha de ingreso</label>
+        <input type="date" id="fecha-ingreso">
+    </div>
+
+    <div class="field-group">
+        <label for="codigo">Código</label>
+        <input type="text" id="codigo">
+    </div>
+
+    <div class="field-group">
+        <label for="descripcion">Descripción</label>
+        <input type="text" id="descripcion" disabled>
+    </div>
+
+    <div class="field-group">
+        <label for="fecha-produccion">Fecha de producción</label>
+        <input type="date" id="fecha-produccion">
+    </div>
+
+    <div class="field-group">
+        <label for="lote">Lote proveedor</label>
+        <input type="text" id="lote">
+    </div>
+
+    <div class="field-group">
+        <label for="cantidad-ingresada">Cantidad ingresada</label>
+        <input type="number" id="cantidad-ingresada">
+    </div>
+
+    <div class="field-group">
+        <label for="cantidad-pallet">Cantidad por pallet</label>
+        <input type="number" id="cantidad-pallet">
+    </div>
+
+    <div class="field-group">
+        <label for="pallets-ingresados">Pallets ingresados</label>
+        <input type="text" id="pallets-ingresados" disabled>
+    </div>
+
+    <div class="field-group">
+        <label for="unidad-bulto">Unidad por bulto</label>
+        <input type="number" id="unidad-bulto">
+    </div>
+
+    <div class="field-group">
+        <label for="bultos-pallet">Bultos por pallet</label>
+        <input type="text" id="bultos-pallet" disabled>
+    </div>
+
+    <div class="field-group">
+        <label for="proveedor">Proveedor</label>
+        <select id="proveedor">
+            <option value="">Seleccione</option>
+            <option>Procarsa</option>
+            <option>Grupasa</option>
+            <option>Cartopel</option>
+            <option>Panasa</option>
+        </select>
+    </div>
+
+    <div class="field-group">
+        <label for="nivel">Nivel de inspección</label>
+        <select id="nivel">
+            <option value="">Seleccione</option>
+            <option value="II">II</option>
+            <option value="III">III</option>
+        </select>
+    </div>
+
+    <div class="field-group">
+        <label for="cantidad-revisar">Cantidad a revisar</label>
+        <input type="text" id="cantidad-revisar" disabled>
+    </div>
+
+    <!-- Aquí se insertarán campos adicionales y hallazgos -->
+
+    <div class="field-group">
+        <label for="hallazgos">Hallazgos</label>
+        <select id="hallazgos">
+            <option value="no">No</option>
+            <option value="si">Sí</option>
+        </select>
+    </div>
+
+    <div id="hallazgos-detalles" class="hidden">
+        <div class="field-group">
+            <label for="cantidad-hallazgos">Cantidad de hallazgos</label>
+            <input type="number" id="cantidad-hallazgos">
+        </div>
+        <div id="hallazgos-campos"></div>
+    </div>
+
+    <div class="field-group">
+        <button type="button" onclick="previsualizar()">Previsualizar</button>
+    </div>
+
+    <div id="preview-container" class="hidden">
+        <h2>Previsualización</h2>
+        <div id="preview"></div>
+        <button type="button" onclick="editarFormulario()">Editar</button>
+        <button type="submit">Guardar</button>
+    </div>
+</form>
+
+<script>
+    const codigoDescripcion = {
+        '350269': 'LAM PULPE PULPE POU AGUA 12X1000G MSC',
+        '350395': 'LAM KINGIFSEA OVAL TOMAT 24X425G EO',
+        '350396': 'LAM KINGOFSEA TINAP TOMAT 88X156G EO(Y)',
+        '350397': 'LAM PUSH PULL 1150X1305MM T150 C',
+        '350398': 'LAM REAL OVAL GIR 48X425G-15OZ T/L'
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha-inspeccion').value = hoy;
+        document.getElementById('fecha-ingreso').value = hoy;
+        document.getElementById('fecha-produccion').value = hoy;
+
+        document.getElementById('codigo').addEventListener('input', () => {
+            const desc = codigoDescripcion[document.getElementById('codigo').value] || '';
+            document.getElementById('descripcion').value = desc;
+        });
+
+        // Añade más lógica para cálculos, hallazgos, etc.
+
+        document.getElementById('hallazgos').addEventListener('change', (e) => {
+            const detalles = document.getElementById('hallazgos-detalles');
+            detalles.classList.toggle('hidden', e.target.value === 'no');
+        });
+
+        document.getElementById('cantidad-hallazgos').addEventListener('input', (e) => {
+            const container = document.getElementById('hallazgos-campos');
+            container.innerHTML = '';
+            const cantidad = parseInt(e.target.value);
+            for (let i = 1; i <= cantidad; i++) {
+                container.innerHTML += `
+                <div class="field-group">
+                    <label>Hallazgo ${i}</label>
+                    <input type="text" placeholder="Descripción del hallazgo">
+                    <select>
+                        <option>Menor</option>
+                        <option>Mayor</option>
+                        <option>Crítico</option>
+                    </select>
+                    <input type="number" placeholder="Unidades afectadas">
+                    <input type="text" placeholder="Pallet(s) afectado(s)">
+                    <input type="text" placeholder="Bulto(s) afectado(s)">
+                </div>`;
+            }
+        });
+    });
+
+    function previsualizar() {
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        const fields = document.querySelectorAll('#inspection-form input, #inspection-form select');
+        fields.forEach(f => {
+            if (f.type !== 'button' && f.type !== 'submit') {
+                preview.innerHTML += `<p><strong>${f.previousElementSibling?.textContent || ''}</strong>: ${f.value}</p>`;
+            }
+        });
+        document.getElementById('preview-container').classList.remove('hidden');
+    }
+
+    function editarFormulario() {
+        document.getElementById('preview-container').classList.add('hidden');
+    }
+</script>
+</body>
+</html>
