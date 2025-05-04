@@ -149,8 +149,6 @@
         <input type="text" id="cantidad-revisar" disabled>
     </div>
 
-    <!-- Aquí se insertarán campos adicionales y hallazgos -->
-
     <div class="field-group">
         <label for="hallazgos">Hallazgos</label>
         <select id="hallazgos">
@@ -189,43 +187,47 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => {
-        const hoy = new Date().toISOString().split('T')[0];
-        document.getElementById('fecha-inspeccion').value = hoy;
-        document.getElementById('fecha-ingreso').value = hoy;
-        document.getElementById('fecha-produccion').value = hoy;
+        const hoy = new Date();
+        const fechaFormateada = hoy.getDate().toString().padStart(2, '0') + '/' + (hoy.getMonth() + 1).toString().padStart(2, '0') + '/' + hoy.getFullYear();
+        document.getElementById('fecha-inspeccion').value = hoy.toISOString().split('T')[0];
+        document.getElementById('fecha-ingreso').value = hoy.toISOString().split('T')[0];
+        document.getElementById('fecha-produccion').value = hoy.toISOString().split('T')[0];
 
         document.getElementById('codigo').addEventListener('input', () => {
             const desc = codigoDescripcion[document.getElementById('codigo').value] || '';
             document.getElementById('descripcion').value = desc;
         });
 
-        // Añade más lógica para cálculos, hallazgos, etc.
-
-        document.getElementById('hallazgos').addEventListener('change', (e) => {
-            const detalles = document.getElementById('hallazgos-detalles');
-            detalles.classList.toggle('hidden', e.target.value === 'no');
-        });
-
-        document.getElementById('cantidad-hallazgos').addEventListener('input', (e) => {
-            const container = document.getElementById('hallazgos-campos');
-            container.innerHTML = '';
-            const cantidad = parseInt(e.target.value);
-            for (let i = 1; i <= cantidad; i++) {
-                container.innerHTML += `
-                <div class="field-group">
-                    <label>Hallazgo ${i}</label>
-                    <input type="text" placeholder="Descripción del hallazgo">
-                    <select>
-                        <option>Menor</option>
-                        <option>Mayor</option>
-                        <option>Crítico</option>
-                    </select>
-                    <input type="number" placeholder="Unidades afectadas">
-                    <input type="text" placeholder="Pallet(s) afectado(s)">
-                    <input type="text" placeholder="Bulto(s) afectado(s)">
-                </div>`;
+        document.getElementById('nivel').addEventListener('change', (e) => {
+            const cantidadRevisar = document.getElementById('cantidad-revisar');
+            if (e.target.value === 'II') {
+                cantidadRevisar.value = '500 unds.';
+            } else if (e.target.value === 'III') {
+                cantidadRevisar.value = '167 unds.';
             }
         });
+
+        document.getElementById('cantidad-ingresada').addEventListener('input', () => {
+            actualizarValores();
+        });
+        document.getElementById('cantidad-pallet').addEventListener('input', () => {
+            actualizarValores();
+        });
+        document.getElementById('unidad-bulto').addEventListener('input', () => {
+            actualizarValores();
+        });
+
+        function actualizarValores() {
+            const cantidadIngresada = document.getElementById('cantidad-ingresada').value;
+            const cantidadPallet = document.getElementById('cantidad-pallet').value;
+            const unidadBulto = document.getElementById('unidad-bulto').value;
+
+            const palletsIngresados = cantidadIngresada / cantidadPallet;
+            const bultosPallet = palletsIngresados * unidadBulto;
+
+            document.getElementById('pallets-ingresados').value = Math.floor(palletsIngresados);
+            document.getElementById('bultos-pallet').value = Math.floor(bultosPallet);
+        }
     });
 
     function previsualizar() {
