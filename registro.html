@@ -186,47 +186,89 @@
         '350398': 'LAM REAL OVAL GIR 48X425G-15OZ T/L'
     };
 
+    const tablaMuestreo = [
+        { min: 2, max: 8, II: 2, III: 3 },
+        { min: 9, max: 15, II: 3, III: 5 },
+        { min: 16, max: 25, II: 5, III: 8 },
+        { min: 26, max: 50, II: 8, III: 13 },
+        { min: 51, max: 90, II: 13, III: 20 },
+        { min: 91, max: 150, II: 20, III: 32 },
+        { min: 151, max: 280, II: 32, III: 50 },
+        { min: 281, max: 500, II: 50, III: 80 },
+        { min: 501, max: 1200, II: 80, III: 125 },
+        { min: 1201, max: 3200, II: 125, III: 200 },
+        { min: 3201, max: 10000, II: 200, III: 315 },
+        { min: 10001, max: 35000, II: 315, III: 500 },
+        { min: 35001, max: 150000, II: 500, III: 800 },
+        { min: 150001, max: 500000, II: 800, III: 1250 },
+        { min: 500001, max: Infinity, II: 1250, III: 2000 },
+    ];
+
     document.addEventListener("DOMContentLoaded", () => {
-        const hoy = new Date();
-        const fechaFormateada = hoy.getDate().toString().padStart(2, '0') + '/' + (hoy.getMonth() + 1).toString().padStart(2, '0') + '/' + hoy.getFullYear();
-        document.getElementById('fecha-inspeccion').value = hoy.toISOString().split('T')[0];
-        document.getElementById('fecha-ingreso').value = hoy.toISOString().split('T')[0];
-        document.getElementById('fecha-produccion').value = hoy.toISOString().split('T')[0];
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha-inspeccion').value = hoy;
+        document.getElementById('fecha-ingreso').value = hoy;
+        document.getElementById('fecha-produccion').value = hoy;
 
         document.getElementById('codigo').addEventListener('input', () => {
             const desc = codigoDescripcion[document.getElementById('codigo').value] || '';
             document.getElementById('descripcion').value = desc;
         });
 
-        document.getElementById('nivel').addEventListener('change', (e) => {
-            const cantidadRevisar = document.getElementById('cantidad-revisar');
-            if (e.target.value === 'II') {
-                cantidadRevisar.value = '500 unds.';
-            } else if (e.target.value === 'III') {
-                cantidadRevisar.value = '167 unds.';
+        const inputs = ['cantidad-ingresada', 'cantidad-pallet', 'unidad-bulto', 'nivel'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', calcularValores);
+        });
+
+        function calcularValores() {
+            const cantidad = parseFloat(document.getElementById('cantidad-ingresada').value) || 0;
+            const porPallet = parseFloat(document.getElementById('cantidad-pallet').value) || 1;
+            const porBulto = parseFloat(document.getElementById('unidad-bulto').value) || 1;
+            const nivel = document.getElementById('nivel').value;
+
+            if (!nivel || cantidad === 0 || porPallet === 0 || porBulto === 0) return;
+
+            const palletsCompletos = Math.floor(cantidad / porPallet);
+            const saldoUnidades = cantidad % porPallet;
+            let palletsTexto = `${palletsCompletos}x${porPallet}`;
+            if (saldoUnidades > 0) palletsTexto += ` + 1x${saldoUnidades}`;
+            document.getElementById('pallets-ingresados').value = palletsTexto;
+
+            const bultosPorPallet = Math.floor(porPallet / porBulto);
+            const saldoBulto = porPallet % porBulto;
+            let bultosTexto = `${bultosPorPallet}x${porBulto}`;
+            if (saldoBulto > 0) bultosTexto += ` + 1x${saldoBulto}`;
+            document.getElementById('bultos-pallet').value = bultosTexto;
+
+            // Unidades a revisar
+            const unidadesRevisar = tablaMuestreo.find(r => cantidad >= r.min && cantidad <= r.max)[nivel];
+            document.getElementById('cantidad-revisar').value = `${unidadesRevisar} unds.`;
+
+            // Pallets a revisar
+            let palletsRev = nivel === 'II' ? 1 : 1;
+            if (porPallet !== 0) {
+                palletsRev = Math.round(unidadesRevisar / porPallet);
             }
-        });
 
-        document.getElementById('cantidad-ingresada').addEventListener('input', () => {
-            actualizarValores();
-        });
-        document.getElementById('cantidad-pallet').addEventListener('input', () => {
-            actualizarValores();
-        });
-        document.getElementById('unidad-bulto').addEventListener('input', () => {
-            actualizarValores();
-        });
+            const unidadesPorPalletRev = Math.round(unidadesRevisar / palletsRev);
+            const bultosPorPalletRev = Math.round(unidadesPorPalletRev / bultosPorPallet);
+            const unidadesPorBultoRev = Math.round(unidadesPorPalletRev / bultosPorPalletRev);
 
-        function actualizarValores() {
-            const cantidadIngresada = document.getElementById('cantidad-ingresada').value;
-            const cantidadPallet = document.getElementById('cantidad-pallet').value;
-            const unidadBulto = document.getElementById('unidad-bulto').value;
+            setValorCampoPrev('Pallets a revisar', palletsRev);
+            setValorCampoPrev('Unidades por pallet a revisar', unidadesPorPalletRev);
+            setValorCampoPrev('Bultos por pallet a revisar', bultosPorPalletRev);
+            setValorCampoPrev('Unidades por bulto a revisar', unidadesPorBultoRev);
+        }
 
-            const palletsIngresados = cantidadIngresada / cantidadPallet;
-            const bultosPallet = palletsIngresados * unidadBulto;
-
-            document.getElementById('pallets-ingresados').value = Math.floor(palletsIngresados);
-            document.getElementById('bultos-pallet').value = Math.floor(bultosPallet);
+        function setValorCampoPrev(label, value) {
+            let el = document.querySelector(`#preview p:has(strong:contains('${label}'))`);
+            if (!el) {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>${label}</strong>: ${value}`;
+                document.getElementById('preview').appendChild(p);
+            } else {
+                el.innerHTML = `<strong>${label}</strong>: ${value}`;
+            }
         }
     });
 
@@ -246,5 +288,3 @@
         document.getElementById('preview-container').classList.add('hidden');
     }
 </script>
-</body>
-</html>
